@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Заказы и платежи</title>
+    <style>
+        :root{
+            --bg: #0b1020;
+            --card: rgba(255,255,255,0.06);
+            --card2: rgba(255,255,255,0.08);
+            --text: rgba(255,255,255,0.92);
+            --muted: rgba(255,255,255,0.65);
+            --border: rgba(255,255,255,0.12);
+            --shadow: 0 18px 50px rgba(0,0,0,.35);
+            --radius: 16px;
+            --radius2: 12px;
+            --ok: #22c55e;
+            --bad: #ef4444;
+            --warn: #f59e0b;
+            --btn: rgba(255,255,255,0.10);
+            --btnH: rgba(255,255,255,0.16);
+            --focus: rgba(59,130,246,.55);
+            --focusRing: rgba(59,130,246,.18);
+            --primaryBorder: rgba(59,130,246,.55);
+            --primaryBg: rgba(59,130,246,.22);
+            --primaryBgH: rgba(59,130,246,.30);
+        }
+
+        html[data-theme="light"]{
+            --bg: #f6f7fb;
+            --card: rgba(0,0,0,0.04);
+            --card2: rgba(0,0,0,0.06);
+            --text: rgba(10,12,18,0.92);
+            --muted: rgba(10,12,18,0.62);
+            --border: rgba(0,0,0,0.10);
+            --shadow: 0 18px 50px rgba(16,24,40,.10);
+            --btn: rgba(0,0,0,0.06);
+            --btnH: rgba(0,0,0,0.10);
+            --focus: rgba(59,130,246,.55);
+            --focusRing: rgba(59,130,246,.16);
+            --primaryBorder: rgba(59,130,246,.50);
+            --primaryBg: rgba(59,130,246,.16);
+            --primaryBgH: rgba(59,130,246,.22);
+        }
+
+        *{ box-sizing: border-box; }
+        html,body{ height:100%; }
+
+        body{
+            margin:0;
+            color:var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+            background:
+                    radial-gradient(1100px 700px at 15% 10%, rgba(59,130,246,.35), transparent 60%),
+                    radial-gradient(900px 600px at 85% 25%, rgba(168,85,247,.28), transparent 60%),
+                    radial-gradient(1000px 700px at 40% 90%, rgba(34,197,94,.16), transparent 60%),
+                    var(--bg);
+        }
+
+        html[data-theme="light"] body{
+            background:
+                    radial-gradient(900px 600px at 15% 10%, rgba(59,130,246,.20), transparent 60%),
+                    radial-gradient(900px 600px at 85% 25%, rgba(168,85,247,.16), transparent 60%),
+                    radial-gradient(900px 600px at 40% 90%, rgba(34,197,94,.12), transparent 60%),
+                    var(--bg);
+        }
+
+        code{
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
+            font-size: 12px;
+        }
+        html[data-theme="light"] code{
+            background: rgba(0,0,0,0.04);
+        }
+
+        .wrap{
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 28px 18px 60px;
+        }
+
+        .topbar{
+            display:flex;
+            gap:14px;
+            align-items:flex-start;
+            justify-content:space-between;
+            margin-bottom: 18px;
+        }
+        .title{
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        h1{
+            margin:0;
+            font-size: 28px;
+            letter-spacing: .2px;
+            line-height: 1.15;
+        }
+        .subtitle{
+            color:var(--muted);
+            font-size: 14px;
+            line-height: 1.35;
+            max-width: 680px;
+        }
+
+        .rightbar{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            flex-wrap: wrap;
+            justify-content:flex-end;
+        }
+
+        .status{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            padding: 10px 12px;
+            border-radius: 999px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            min-width: 240px;
+            justify-content:space-between;
+        }
+        .pill{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .dot{
+            width:10px; height:10px; border-radius: 999px;
+            background: var(--warn);
+            box-shadow: 0 0 0 4px rgba(245,158,11,.18);
+        }
+
+        .btn{
+            appearance:none;
+            border: 1px solid var(--border);
+            background: var(--btn);
+            color: var(--text);
+            padding: 9px 12px;
+            border-radius: 10px;
+            cursor:pointer;
+            transition: .15s ease;
+            font-weight: 600;
+            font-size: 13px;
+            user-select:none;
+        }
+        .btn:hover{ background: var(--btnH); transform: translateY(-1px); }
+        .btn:active{ transform: translateY(0px); }
+
+        .btn.primary{
+            border-color: var(--primaryBorder);
+            background: var(--primaryBg);
+        }
+        .btn.primary:hover{ background: var(--primaryBgH); }
+
+        .btn.ghost{ background: transparent; }
+
+        .grid{
+            display:grid;
+            gap: 14px;
+            grid-template-columns: repeat(12, 1fr);
+            margin-top: 14px;
+        }
+        .card{
+            grid-column: span 6;
+            background: linear-gradient(180deg, var(--card2), var(--card));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+        }
+        @media (max-width: 900px){
+            .card{ grid-column: span 12; }
+            .status{ min-width: unset; }
+            .topbar{ flex-direction:column; }
+            .rightbar{ width: 100%; justify-content:flex-start; }
+        }
+
+        .card h2{
+            margin: 0 0 10px;
+            font-size: 16px;
+            letter-spacing: .2px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap: wrap;
+        }
+        .hint{
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: -2px;
+            margin-bottom: 12px;
+            line-height: 1.35;
+        }
+
+        label{
+            display:block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .row{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 520px){
+            .row{ grid-template-columns: 1fr; }
+        }
+
+        input{
+            width:100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(0,0,0,0.25);
+            color: var(--text);
+            outline:none;
+            transition: .15s ease;
+            font-size: 13px;
+        }
+        html[data-theme="light"] input{
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(0,0,0,0.10);
+        }
+        input::placeholder{ color: rgba(255,255,255,.35); }
+        html[data-theme="light"] input::placeholder{ color: rgba(10,12,18,.35); }
+
+        input:focus{
+            border-color: var(--focus);
+            box-shadow: 0 0 0 4px var(--focusRing);
+        }
+
+        .actions{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .result{
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius2);
+            background: rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        html[data-theme="light"] .result{
+            background: rgba(255,255,255,0.65);
+        }
+        .resultHead{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            justify-content:space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .badge{
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.06);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        html[data-theme="light"] .badge{
+            background: rgba(0,0,0,0.04);
+        }
+
+        pre{
+            margin:0;
+            padding: 12px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: rgba(255,255,255,0.88);
+            overflow:auto;
+            max-height: 220px;
+        }
+        html[data-theme="light"] pre{
+            color: rgba(10,12,18,0.88);
+        }
+
+        .mini{
+            display:flex; gap:8px; align-items:center;
+            color: var(--muted); font-size:12px;
+        }
+        .linklike{
+            color: rgba(59,130,246,.9);
+            cursor:pointer;
+            user-select:none;
+        }
+        .linklike:hover{ text-decoration: underline; }
+    </style>
+</head>
+
+<body>
+<div class="wrap">
+    <div class="topbar">
+        <div class="title">
+            <h1>Заказы и платежи</h1>
+            <div class="subtitle">
+                Интерфейс для проверки микросервисов <b>Orders</b> и <b>Payments</b> через <b>Gateway</b>.
+                Все запросы идут на <code>/api/*</code>.
+            </div>
+        </div>
+
+        <div class="rightbar">
+            <div class="status">
+                <div class="pill">
+                    <span class="dot" id="healthDot"></span>
+                    <span id="healthText"></span>
+                </div>
+                <button class="btn" onclick="checkHealth()">Обновить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <section class="card">
+            <h2>Создать аккаунт <span class="badge">POST /api/accounts</span></h2>
+            <div class="hint">UUID пользователя + стартовый баланс</div>
+
+            <div class="row">
+                <div>
+                    <label for="createUserId">User ID (UUID)</label>
+                    <input id="createUserId" type="text" placeholder="11111111-1111-1111-1111-111111111111" />
+                </div>
+                <div>
+                    <label for="createBalance">Начальный баланс</label>
+                    <input id="createBalance" type="number" placeholder="1000" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" onclick="createAccount()">Создать</button>
+                <button class="btn ghost" onclick="fillDemoUUID('createUserId')">Вставить тестовый UUID</button>
+                <button class="btn ghost" onclick="setRandomUUID('createUserId')">Сгенерировать UUID</button>
+            </div>
+
+            <div class="result">
+                <div class="resultHead">
+                    <span>Ответ</span>
+                    <div class="mini">
+                        <span class="linklike" onclick="copyText('createAccountResult')">копировать</span>
+                        <span>·</span>
+                        <span class="linklike" onclick="clearOut('createAccountResult','{}')">очистить</span>
+                    </div>
+                </div>
+                <pre id="createAccountResult">{}</pre>
+            </div>
+        </section>
+
+        <!-- Top Up -->
+        <section class="card">
+            <h2>Пополнить баланс <span class="badge">POST /api/accounts/topup</span></h2>
+            <div class="hint">Пополнение существующего аккаунта</div>
+
+            <div class="row">
+                <div>
+                    <label for="topUserId">User ID (UUID)</label>
+                    <input id="topUserId" type="text" placeholder="11111111-1111-1111-1111-111111111111" />
+                </div>
+                <div>
+                    <label for="topAmount">Сумма</label>
+                    <input id="topAmount" type="number" placeholder="600" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" onclick="topUp()">Пополнить</button>
+                <button class="btn ghost" onclick="syncUUID('createUserId','topUserId')">Взять UUID из «Создать»</button>
+            </div>
+
+            <div class="result">
+                <div class="resultHead">
+                    <span>Ответ</span>
+                    <div class="mini">
+                        <span class="linklike" onclick="copyText('topUpResult')">копировать</span>
+                        <span>·</span>
+                        <span class="linklike" onclick="clearOut('topUpResult','{}')">очистить</span>
+                    </div>
+                </div>
+                <pre id="topUpResult">{}</pre>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Создать заказ <span class="badge">POST /api/orders</span></h2>
+            <div class="hint">Создание заказа инициирует обработку платежа</div>
+
+            <div class="row">
+                <div>
+                    <label for="orderUserId">User ID (UUID)</label>
+                    <input id="orderUserId" type="text" placeholder="11111111-1111-1111-1111-111111111111" />
+                </div>
+                <div>
+                    <label for="orderAmount">Сумма</label>
+                    <input id="orderAmount" type="number" placeholder="250" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="grid-column: 1 / -1;">
+                    <label for="orderDesc">Описание</label>
+                    <input id="orderDesc" type="text" placeholder="Например: заказ №1" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" onclick="createOrder()">Создать заказ</button>
+                <button class="btn ghost" onclick="syncUUID('createUserId','orderUserId')">Взять UUID из «Создать»</button>
+            </div>
+
+            <div class="result">
+                <div class="resultHead">
+                    <span>Ответ</span>
+                    <div class="mini">
+                        <span class="linklike" onclick="copyText('createOrderResult')">копировать</span>
+                        <span>·</span>
+                        <span class="linklike" onclick="clearOut('createOrderResult','{}')">очистить</span>
+                    </div>
+                </div>
+                <pre id="createOrderResult">{}</pre>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Список заказов <span class="badge">GET /api/orders?user_id=…</span></h2>
+            <div class="hint">Возвращает все заказы пользователя.</div>
+
+            <div class="row">
+                <div style="grid-column: 1 / -1;">
+                    <label for="listUserId">User ID (UUID)</label>
+                    <input id="listUserId" type="text" placeholder="11111111-1111-1111-1111-111111111111" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" onclick="listOrders()">Получить список</button>
+                <button class="btn ghost" onclick="syncUUID('createUserId','listUserId')">Взять UUID из «Создать»</button>
+            </div>
+
+            <div class="result">
+                <div class="resultHead">
+                    <span>Ответ</span>
+                    <div class="mini">
+                        <span class="linklike" onclick="copyText('listOrdersResult')">копировать</span>
+                        <span>·</span>
+                        <span class="linklike" onclick="clearOut('listOrdersResult','[]')">очистить</span>
+                    </div>
+                </div>
+                <pre id="listOrdersResult">[]</pre>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Баланс <span class="badge">GET /api/accounts/{user_id}</span></h2>
+            <div class="hint">Проверка текущего баланса пользователя.</div>
+
+            <div class="row">
+                <div style="grid-column: 1 / -1;">
+                    <label for="balanceUserId">User ID (UUID)</label>
+                    <input id="balanceUserId" type="text" placeholder="11111111-1111-1111-1111-111111111111" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" onclick="getBalance()">Получить баланс</button>
+                <button class="btn ghost" onclick="syncUUID('createUserId','balanceUserId')">Взять UUID из «Создать»</button>
+            </div>
+
+            <div class="result">
+                <div class="resultHead">
+                    <span>Ответ</span>
+                    <div class="mini">
+                        <span class="linklike" onclick="copyText('getBalanceResult')">копировать</span>
+                        <span>·</span>
+                        <span class="linklike" onclick="clearOut('getBalanceResult','{}')">очистить</span>
+                    </div>
+                </div>
+                <pre id="getBalanceResult">{}</pre>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    const DEMO_UUID = "11111111-1111-1111-1111-111111111111";
+
+    function fillDemoUUID(id){
+        document.getElementById(id).value = DEMO_UUID;
+    }
+
+    function syncUUID(fromId, toId){
+        const v = document.getElementById(fromId).value.trim();
+        if(v) document.getElementById(toId).value = v;
+    }
+
+    function isUUID(v){
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+    }
+
+    function genUUID(){
+        if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = (Math.random() * 16) | 0;
+            const v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
+    }
+
+    function setRandomUUID(inputId){
+        document.getElementById(inputId).value = genUUID();
+    }
+
+    function clearOut(preId, fallback){
+        document.getElementById(preId).textContent = fallback ?? "";
+    }
+
+    async function copyText(preId){
+        const t = document.getElementById(preId).textContent;
+        try{
+            await navigator.clipboard.writeText(t);
+        }catch(e){
+            alert("Не получилось скопировать");
+        }
+    }
+
+    function render(preId, res){
+        const pre = document.getElementById(preId);
+        const payload = { status: res.status, data: res.data };
+        pre.textContent = JSON.stringify(payload, null, 2);
+        pre.scrollTop = pre.scrollHeight;
+    }
+
+    async function request(method, url, body) {
+        const options = { method, headers: {} };
+
+        const hasBody = body !== undefined && body !== null;
+        if (hasBody && !['GET','HEAD'].includes(method.toUpperCase())) {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(body);
+        }
+
+        try{
+            const response = await fetch(url, options);
+            const text = await response.text();
+            let json;
+            try { json = JSON.parse(text); } catch { json = text; }
+            return { status: response.status, data: json };
+        }catch(err){
+            return { status: 0, data: { error: "network_error", message: err.message } };
+        }
+    }
+
+    function needUUID(v){
+        if(!v){ alert("Введите User ID (UUID)"); return false; }
+        if(!isUUID(v)){
+            alert("User ID должен быть UUID формата: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
+            return false;
+        }
+        return true;
+    }
+
+    function needNumber(n, msg){
+        if (!Number.isFinite(n)) { alert(msg); return false; }
+        return true;
+    }
+
+    async function createAccount() {
+        const user_id = document.getElementById('createUserId').value.trim();
+        const balance = Number(document.getElementById('createBalance').value);
+
+        if (!needUUID(user_id)) return;
+        if (!needNumber(balance, "Введите корректный баланс")) return;
+
+        const res = await request('POST', '/api/accounts', { user_id, balance });
+        render('createAccountResult', res);
+    }
+
+    async function topUp() {
+        const user_id = document.getElementById('topUserId').value.trim();
+        const amount = Number(document.getElementById('topAmount').value);
+
+        if (!needUUID(user_id)) return;
+        if (!needNumber(amount, "Введите корректную сумму")) return;
+
+        const res = await request('POST', '/api/accounts/topup', { user_id, amount });
+        render('topUpResult', res);
+    }
+
+    async function createOrder() {
+        const user_id = document.getElementById('orderUserId').value.trim();
+        const amount = Number(document.getElementById('orderAmount').value);
+        const description = document.getElementById('orderDesc').value.trim();
+
+        if (!needUUID(user_id)) return;
+        if (!needNumber(amount, "Введите корректную сумму")) return;
+
+        const res = await request('POST', '/api/orders', { user_id, amount, description });
+        render('createOrderResult', res);
+    }
+
+    async function listOrders() {
+        const user_id = document.getElementById('listUserId').value.trim();
+        if (!needUUID(user_id)) return;
+
+        const res = await request('GET', '/api/orders?user_id=' + encodeURIComponent(user_id));
+        render('listOrdersResult', res);
+    }
+
+    async function getBalance() {
+        const user_id = document.getElementById('balanceUserId').value.trim();
+        if (!needUUID(user_id)) return;
+
+        const res = await request('GET', '/api/accounts/' + encodeURIComponent(user_id));
+        render('getBalanceResult', res);
+    }
+
+    async function checkHealth(){
+        const dot = document.getElementById("healthDot");
+        const text = document.getElementById("healthText");
+
+        dot.style.background = "var(--warn)";
+        dot.style.boxShadow = "0 0 0 4px rgba(245,158,11,.18)";
+        text.textContent = "Проверяю здоровье…";
+
+        const res = await request("GET", "/api/health");
+        if(res.status === 200){
+            dot.style.background = "var(--ok)";
+            dot.style.boxShadow = "0 0 0 4px rgba(34,197,94,.18)";
+            text.textContent = "Gateway: OK";
+        }else{
+            dot.style.background = "var(--bad)";
+            dot.style.boxShadow = "0 0 0 4px rgba(239,68,68,.18)";
+            text.textContent = "Gateway: ошибка";
+        }
+    }
+
+    checkHealth();
+</script>
+</body>
+</html>
